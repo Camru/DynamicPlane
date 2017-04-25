@@ -7,12 +7,13 @@ let VSHADER_SOURCE =
  uniform float u_Time;
  uniform float u_Frequency;
  uniform float u_Amplitude;
+ uniform float u_PosMultiple;
  varying vec4 v_Color;
  varying vec4 v_Position;
  void main() {
     vec4 position2 = a_Position;
-    position2.y += u_Amplitude * sin(u_Frequency * u_Time + a_Position.x * 7.0); 
-    position2.y += u_Amplitude * cos(u_Frequency * u_Time + a_Position.z * 7.0); 
+    position2.y += u_Amplitude * sin(u_Frequency * u_Time + a_Position.x * u_PosMultiple); 
+    position2.y += u_Amplitude * cos(u_Frequency * u_Time + a_Position.z * u_PosMultiple); 
     gl_Position = u_ProjectionMatrix * u_ViewMatrix * u_ModelMatrix * position2;  
     v_Position = position2;
     v_Color = a_Color;
@@ -27,13 +28,14 @@ let FSHADER_SOURCE =
   gl_FragColor = vec4(v_Position.x * u_Brightness, v_Position.y * u_Brightness, v_Position.z * u_Brightness, 1.0);
  }`;
 
-function main() {
+function main(x, z, color) {
   const canvas = document.getElementById('webgl');
-  let gl = getWebGLContext(canvas);
+  const gl = initWebGL(canvas);
 
   const controls = {
     frequency: document.getElementById('frequency'),
     amplitude: document.getElementById('amplitude'),
+    posMultiple: document.getElementById('posMultiple'),
     brightness: document.getElementById('brightness'),
     rotationSpeed: document.getElementById('rotationSpeed'),
     cameraX: document.getElementById('cameraX'),
@@ -41,36 +43,33 @@ function main() {
     cameraZ: document.getElementById('cameraZ')
   };
 
-
-  // Init and compile shaders
+  // Compile shaders
   if(!initShaders(gl, VSHADER_SOURCE, FSHADER_SOURCE)) {
     console.log('failed to get rendering context');
     return;
   }
 
-  // Set positons of vertices
-  var n = initVertextBuffers(gl); 
+
+  // Get number of vertices to be rendered
+  var n = initVertextBuffers(gl, x, z); 
   if (n < 0) {
     console.log('failed to set position of vertices');
     return;
   }
 
-  // gl.clearColor(0.0,	0.0,	0.0, 1.0);
-  gl.clearColor(0.11,	0.07,	0.17, 1.0);
+  const hex = hexToRgbA(color);
+  const [r, g, b] = hex;
+  gl.clearColor(r/255, g/255, b/255, 1.0);
   gl.enable(gl.DEPTH_TEST);
 
-  let tiltAngle = -50;
   let rotation = 0;
-  let rotSpeed = 20;
   let then = 0;
-  let step = 0;
   const animate = now => {
     if (!now) now = 0.016; 
     now *= 0.001; // convert time to seconds
     let deltaTime = now - then;
     then = now;
 
-    step += 0.024;
     rotation += controls.rotationSpeed.value * deltaTime; 
     let time = gl.getUniformLocation(gl.program, 'u_Time');
     locationCheck(time, 'time');
@@ -84,13 +83,15 @@ function main() {
     locationCheck(u_Amplitude, 'u_Amplitude');
     gl.uniform1f(u_Amplitude, controls.amplitude.value);
 
+    let u_PosMultiple = gl.getUniformLocation(gl.program, 'u_PosMultiple');
+    locationCheck(u_PosMultiple, 'u_PosMultiple');
+    gl.uniform1f(u_PosMultiple, controls.posMultiple.value);
+
     let u_Brightness = gl.getUniformLocation(gl.program, 'u_Brightness');
     locationCheck(u_Brightness, 'u_Brightness');
     gl.uniform1f(u_Brightness, controls.brightness.value);
 
     let modelMatrix = new Matrix4();
-    // modelMatrix.setRotate(tiltAngle, 1, 0, 0);
-    // modelMatrix.translate(0, 0, 0);
     modelMatrix.setRotate(rotation, 0, 1, 0);
 
     draw(gl, canvas, modelMatrix, n, controls);
@@ -100,8 +101,6 @@ function main() {
   animate();
 
 };
-
-// =============================================================================
 
 function draw(gl, canvas, model, n, controls) {
     const {cameraX, cameraY, cameraZ} = controls;
@@ -125,7 +124,6 @@ function draw(gl, canvas, model, n, controls) {
     gl.uniformMatrix4fv(u_ViewMatrix, false, view.elements);
     gl.uniformMatrix4fv(u_ModelMatrix, false, model.elements);
 
-    // Clear screen before drawing 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     gl.drawArrays(gl.TRIANGLE, 0, n); 
@@ -148,8 +146,6 @@ function generatePlane (segmentsX, segmentsZ) {
       const z0 = z * widthZ - 0.5
       const z1 = (z + 1) * widthZ - 0.5
 
-      // Build 2 triangles
-      //
       //       (x0, z1)       (x1, z1)
       //              *-------*
       //              | A   / |
@@ -158,66 +154,69 @@ function generatePlane (segmentsX, segmentsZ) {
       //              *-------*
       //       (x0, z0)       (x1, z0)
 
-      // Triangle A
-      // positions.push([x0, 0, z0])
-      // positions.push([x0, 0, z1])
-      // positions.push([x1, 0, z1])
-
-      // // Triangle B
-      // positions.push([x1, 0, z1])
-      // positions.push([x1, 0, z0])
-      // positions.push([x0, 0, z0])
       positions.push(x0, 0, z0, x0, 0, z1, x1, 0, z1, x1, 0, z1, x1, 0, z0, x0, 0, z0);
     }
   }
   return positions;
 }
 
-function initVertextBuffers (gl) {
-  const positions = generatePlane(1000, 1000);
-  // const verts = [];
-  // positions.map(group => {
-  //   group.map(int => verts.push(int));
-  // });
-  // const vertices = new Float32Array([
-  //   -0.5, 0.5, 1.0, 1.0, 0.0, 0.0, // top left
-  //   -0.5, -0.5, 1.0, 1.0, 0.0, 0.0, // bottom left
-  //   0.5, 0.5, 1.0, 1.0, 0.0, 0.0,  // top right
-
-  //   // -0.5, -0.5, 1.0, 1.0, 0.0, 0.0, // bottom left
-  //   // 0.5, -0.5, 1.0, 1.0, 0.0, 0.0, // bottom right
-  //   // 0.5, 0.5, 1.0, 1.0, 0.0, 0.0, // top right
-  // ]);
-
- const vertices = new Float32Array(positions);
+function initVertextBuffers (gl, x, z) {
+  const positions = generatePlane(x, z);
+  const vertices = new Float32Array(positions);
 
   const n = vertices.length/6;
   const F_SIZE = vertices.BYTES_PER_ELEMENT;
 
-    // Create buffer object
   let vertexBuffer = gl.createBuffer();
   if (!vertexBuffer) {
     console.log('Failed to create a buffer object');
     return 1;
   }
 
-  // Bind buffer object to target
   gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
 
-  // write data into buffer object
   gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 
-  // 4. Get locations of attribute/uniforms
   let a_Position = gl.getAttribLocation(gl.program, 'a_Position');
   let a_Color = gl.getAttribLocation(gl.program, 'a_Color');
 
-  // Assign the buffer object to a_Position variable
   gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, F_SIZE*6, 0);
   gl.vertexAttribPointer(a_Color, 3, gl.FLOAT, false, F_SIZE*6, F_SIZE*3);
 
-  // Enable assignment to a_Position variable
   gl.enableVertexAttribArray(a_Position);
   gl.enableVertexAttribArray(a_Color);
 
   return n;
+}
+
+function updateSegments() {
+  const xSegs = document.getElementById('xSegments').value;
+  const zSegs = document.getElementById('zSegments').value;
+  const backgroundColor = document.getElementById('backgroundColor').value;
+  main(xSegs, zSegs, backgroundColor);
+}
+
+function hexToRgbA(hex){
+    let c;
+    if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
+        c = hex.substring(1).split('');
+        if(c.length == 3){
+            c = [c[0], c[0], c[1], c[1], c[2], c[2]];
+        }
+        c = '0x'+c.join('');
+        return [(c>>16)&255, (c>>8)&255, c&255, 1];
+    }
+    throw new Error('Bad Hex');
+}
+
+
+function initWebGL(canvas) {
+  let gl = null;
+  
+  // Try to grab the standard context. If it fails, fallback to experimental.
+  gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  
+  if (!gl) alert('Unable to initialize WebGL. Your browser may not support it.');
+  
+  return gl;
 }

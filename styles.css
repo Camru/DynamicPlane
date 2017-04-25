@@ -1,6 +1,13 @@
 body {
     margin: 0;
+    font-family: 'Open Sans', serif;
+    letter-spacing: 1px;
 }
+
+canvas {
+    flex-grow: 1;
+}
+
 .container {
     display: flex;
     justify-content: space-between;
@@ -9,7 +16,6 @@ body {
 }
 
 #controls {
-    border-left: 1px solid #484848;
     width: 300px;
     color: white;
     background-color: rgba(0, 0, 0, 0.5);
@@ -17,4 +23,46 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
 }
+
+.control-list {
+    list-style: none;
+    line-height: 30px;
+    padding: 0px;
+}
+
+.control-list li {
+   margin-bottom: 10px; 
+}
+
+.camera-label {
+    display: flex;
+    justify-content: space-around;
+    width: 175px;
+}
+
+.btn {
+    font-family: 'Open Sans', sans-serif;
+    padding: 6px;
+    border: 0;
+    background-color: transparent;
+    color: white;
+    border: 1px solid white;
+    border-radius: 2px;
+    transition: all 0.2s ease;
+    letter-spacing: 1px;
+}
+
+.btn:hover {
+    background-color: #ff5e00;
+    border: 1px solid #ff5e00; 
+}
+
+.num-input {
+    background-color: white;
+    border: 0px;
+    padding: 6px;
+    border-radius: 1px;
+}
+
