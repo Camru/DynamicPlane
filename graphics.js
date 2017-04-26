@@ -62,10 +62,11 @@ function main(x, z, color) {
   gl.clearColor(r/255, g/255, b/255, 1.0);
   gl.enable(gl.DEPTH_TEST);
 
+  let now;
+  let then = Date.now() * 0.001;
   let rotation = 0;
-  let then = 0;
   const animate = now => {
-    if (!now) now = 0.016; 
+    if (!now) now = Date.now(); 
     now *= 0.001; // convert time to seconds
     let deltaTime = now - then;
     then = now;
@@ -105,7 +106,7 @@ function main(x, z, color) {
 function draw(gl, canvas, model, n, controls) {
     const {cameraX, cameraY, cameraZ} = controls;
     const FOV = 20;
-    const ASPECT = canvas.width/canvas.height;
+    const ASPECT = canvas.clientWidth/canvas.clientHeight;
     const NEAR = 1;
     const FAR = 100;
     let u_ProjectionMatrix = gl.getUniformLocation(gl.program, 'u_ProjectionMatrix');
@@ -189,7 +190,7 @@ function initVertextBuffers (gl, x, z) {
   return n;
 }
 
-function updateSegments() {
+function reloadShaders() {
   const xSegs = document.getElementById('xSegments').value;
   const zSegs = document.getElementById('zSegments').value;
   const backgroundColor = document.getElementById('backgroundColor').value;
