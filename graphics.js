@@ -30,7 +30,7 @@ let FSHADER_SOURCE =
 
 function main(x, z, color) {
   const canvas = document.getElementById('webgl');
-  const gl = initWebGL(canvas);
+  const gl = utils.initWebGL(canvas);
 
   const controls = {
     frequency: document.getElementById('frequency'),
@@ -44,11 +44,10 @@ function main(x, z, color) {
   };
 
   // Compile shaders
-  if(!initShaders(gl, VSHADER_SOURCE, FSHADER_SOURCE)) {
+  if(!utils.initShaders(gl, VSHADER_SOURCE, FSHADER_SOURCE)) {
     console.log('failed to get rendering context');
     return;
   }
-
 
   // Get number of vertices to be rendered
   var n = initVertextBuffers(gl, x, z); 
@@ -72,24 +71,20 @@ function main(x, z, color) {
     then = now;
 
     rotation += controls.rotationSpeed.value * deltaTime; 
-    let time = gl.getUniformLocation(gl.program, 'u_Time');
-    locationCheck(time, 'time');
+
+    let time = utils.getULocation(gl, 'u_Time');
     gl.uniform1f(time, now);
 
-    let u_Frequency = gl.getUniformLocation(gl.program, 'u_Frequency');
-    locationCheck(u_Frequency, 'u_Freqency');
+    let u_Frequency = utils.getULocation(gl, 'u_Frequency');
     gl.uniform1f(u_Frequency, controls.frequency.value);
 
-    let u_Amplitude = gl.getUniformLocation(gl.program, 'u_Amplitude');
-    locationCheck(u_Amplitude, 'u_Amplitude');
+    let u_Amplitude = utils.getULocation(gl, 'u_Amplitude');
     gl.uniform1f(u_Amplitude, controls.amplitude.value);
 
-    let u_PosMultiple = gl.getUniformLocation(gl.program, 'u_PosMultiple');
-    locationCheck(u_PosMultiple, 'u_PosMultiple');
+    let u_PosMultiple = utils.getULocation(gl, 'u_PosMultiple');
     gl.uniform1f(u_PosMultiple, controls.posMultiple.value);
 
-    let u_Brightness = gl.getUniformLocation(gl.program, 'u_Brightness');
-    locationCheck(u_Brightness, 'u_Brightness');
+    let u_Brightness = utils.getULocation(gl, 'u_Brightness');
     gl.uniform1f(u_Brightness, controls.brightness.value);
 
     let modelMatrix = new Matrix4();
@@ -109,12 +104,9 @@ function draw(gl, canvas, model, n, controls) {
     const ASPECT = canvas.clientWidth/canvas.clientHeight;
     const NEAR = 1;
     const FAR = 100;
-    let u_ProjectionMatrix = gl.getUniformLocation(gl.program, 'u_ProjectionMatrix');
-    let u_ViewMatrix = gl.getUniformLocation(gl.program, 'u_ViewMatrix');
-    let u_ModelMatrix = gl.getUniformLocation(gl.program, 'u_ModelMatrix');
-    locationCheck(u_ProjectionMatrix, 'u_ProjectionMatrix');
-    locationCheck(u_ViewMatrix, 'u_ViewMatrix');
-    locationCheck(u_ViewMatrix, 'u_ModelMatrix');
+    let u_ProjectionMatrix = utils.getULocation(gl, 'u_ProjectionMatrix');
+    let u_ViewMatrix = utils.getULocation(gl, 'u_ViewMatrix');
+    let u_ModelMatrix = utils.getULocation(gl, 'u_ModelMatrix');
 
     let projection = new Matrix4();
     let view = new Matrix4();
@@ -128,12 +120,6 @@ function draw(gl, canvas, model, n, controls) {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     gl.drawArrays(gl.TRIANGLE, 0, n); 
-}
-
-function locationCheck(location, name) {
-  if (!location) {
-    console.log(`failed to get location of ${name}`);
-  }
 }
 
 function generatePlane (segmentsX, segmentsZ) {
@@ -208,16 +194,4 @@ function hexToRgbA(hex){
         return [(c>>16)&255, (c>>8)&255, c&255, 1];
     }
     throw new Error('Bad Hex');
-}
-
-
-function initWebGL(canvas) {
-  let gl = null;
-  
-  // Try to grab the standard context. If it fails, fallback to experimental.
-  gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-  
-  if (!gl) alert('Unable to initialize WebGL. Your browser may not support it.');
-  
-  return gl;
 }
