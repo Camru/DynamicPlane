@@ -7,7 +7,8 @@
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
   </head>
  
-  <body onload="graphics.main(600, 600, '#1c122b')">
+  <body>
+    <div id="loading"></div>
     <div class="container">
       <canvas id="webgl" width="800" height="600">
       Please use a browser that supports "canvas"
@@ -63,5 +64,12 @@
     <script src="./utils.js"></script>
     <script src="./lib/cuon-matrix.js"></script>
     <script src="graphics.js"></script>
+
+    <script type="text/javascript">
+      window.onload = () => { 
+        graphics.main(600, 600, '#1c122b');
+        document.getElementById("loading").style.display = "none";
+      };
+    </script>
   </body>
 </html>

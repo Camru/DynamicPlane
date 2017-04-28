@@ -15,6 +15,20 @@ canvas {
     height: 100vh;
 }
 
+#loading {
+    color: #b1d3ff;
+    position: absolute;
+    z-index: 10;
+    background-color: rgba(0, 0, 0, 0.61);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Open Sans';
+    letter-spacing: 1px;
+}
+
 #controls {
     width: 300px;
     color: white;

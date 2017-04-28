@@ -60,6 +60,26 @@ const utils = (() => {
     return location;
   }
 
+  function perfTest(fn, args, count) {
+    let times = [];
+    let trials = count || 10;
+
+    for (let i = 0; i < trials; i++) {
+
+      var t0 = performance.now();
+      var result = fn.apply(this, args);
+      var t1 = performance.now();
+
+      times.push(+(t1 - t0).toFixed(4));
+    }
+
+    let maxTime = Math.max.apply(Math, times);
+    let avgTime = times.reduce((a,b) => a+b)/ times.length;
+
+    console.log(`Avg. execution time: ${avgTime} ms`);
+    console.log(`Max execution time: ${maxTime} ms`);
+  }
+
   function initEventHandlers(canvas, currentAngle) {
     let dragging = false;
     let lastX = -1;
@@ -104,7 +124,8 @@ const utils = (() => {
     initWebGL: initWebGL,
     initShaders: initShaders,
     initEventHandlers: initEventHandlers,
-    getULocation: getULocation,
+    perfTest: perfTest,
+    getULocation: getULocation
   };
 
 })();
