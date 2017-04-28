@@ -48,22 +48,63 @@ const utils = (() => {
   }
 
   function locationCheck(location, name) {
-   
+
   }
 
-  function getULocation (gl, name) {
-     const location = gl.getUniformLocation(gl.program, name);
-     if (!location) {
-       console.log(`failed to get location of ${name}`);
-       return;
-     }
-     return location;
+  function getULocation(gl, name) {
+    const location = gl.getUniformLocation(gl.program, name);
+    if (!location) {
+      console.log(`failed to get location of ${name}`);
+      return;
+    }
+    return location;
+  }
+
+  function initEventHandlers(canvas, currentAngle) {
+    let dragging = false;
+    let lastX = -1;
+    let lastY = -1;
+
+    canvas.addEventListener('mousedown', e => {
+      let x = e.clientX;
+      let y = e.clientY;
+      let rect = e.target.getBoundingClientRect();
+      if (rect.left <= x && x < rect.right && rect.top <= y && y < rect.bottom) {
+        lastX = x;
+        lastY = y;
+        dragging = true;
+      }
+
+    });
+
+    canvas.addEventListener('mouseup', e => {
+      dragging = false;
+    });
+
+    canvas.addEventListener('mousemove', e => {
+      canvas.style.cursor = "pointer";
+      let x = e.clientX;
+      let y = e.clientY;
+      if (dragging) {
+        let rotationRatio = 100 / canvas.clientHeight;
+        let dx = rotationRatio * (x - lastX);
+        let dy = rotationRatio * (y - lastY);
+
+        // contstrain rotation to -90 and 90 degree
+        currentAngle[0] = currentAngle[0] + dy;
+        currentAngle[1] = currentAngle[1] + dx;
+      }
+
+      lastX = x;
+      lastY = y;
+    });
   }
 
   return {
     initWebGL: initWebGL,
-    initShaders: initShaders, 
-    getULocation: getULocation
+    initShaders: initShaders,
+    initEventHandlers: initEventHandlers,
+    getULocation: getULocation,
   };
 
 })();

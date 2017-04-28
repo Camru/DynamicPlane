@@ -37,7 +37,7 @@ function main(x, z, color) {
     amplitude: document.getElementById('amplitude'),
     posMultiple: document.getElementById('posMultiple'),
     brightness: document.getElementById('brightness'),
-    rotationSpeed: document.getElementById('rotationSpeed'),
+    autoRotate: document.getElementById('autoRotate'),
     cameraX: document.getElementById('cameraX'),
     cameraY: document.getElementById('cameraY'),
     cameraZ: document.getElementById('cameraZ')
@@ -64,13 +64,13 @@ function main(x, z, color) {
   let now;
   let then = Date.now() * 0.001;
   let rotation = 0;
+  let currentAngle = [0.0, 0.1];
+  utils.initEventHandlers(canvas, currentAngle);
   const animate = now => {
     if (!now) now = Date.now(); 
     now *= 0.001; // convert time to seconds
     let deltaTime = now - then;
     then = now;
-
-    rotation += controls.rotationSpeed.value * deltaTime; 
 
     let time = utils.getULocation(gl, 'u_Time');
     gl.uniform1f(time, now);
@@ -88,14 +88,19 @@ function main(x, z, color) {
     gl.uniform1f(u_Brightness, controls.brightness.value);
 
     let modelMatrix = new Matrix4();
-    modelMatrix.setRotate(rotation, 0, 1, 0);
-
+    if (controls.autoRotate.checked) {
+      rotation += 40 * deltaTime; 
+      modelMatrix.setRotate(rotation, 0, 1, 0);
+    } else {
+      modelMatrix.rotate(currentAngle[0], 1.0, 0.0, 0.0);
+      modelMatrix.rotate(currentAngle[1], 0.0, 1.0, 0.0);
+    }
+    
     draw(gl, canvas, modelMatrix, n, controls);
     
     requestAnimationFrame(animate);
   };
   animate();
-
 };
 
 function draw(gl, canvas, model, n, controls) {
