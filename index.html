@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
   </head>
  
-  <body onload="main(600, 600, '#1c122b')">
+  <body onload="graphics.main(600, 600, '#1c122b')">
     <div class="container">
       <canvas id="webgl" width="800" height="600">
       Please use a browser that supports "canvas"
@@ -52,7 +52,7 @@
             <input class="num-input" id="zSegments" type="number" min="0" max="1500" value="600" />
           </li>
           <li>
-            <button class="btn" onclick="reloadShaders()">Refresh</button>
+            <button class="btn" onclick="graphics.reloadShaders()">Refresh</button>
           </li>
         </ul>
       </div> <!-- end controls -->
