@@ -82,7 +82,7 @@ const utils = (() => {
     });
 
     canvas.addEventListener('mousemove', e => {
-      canvas.style.cursor = "pointer";
+      canvas.style.cursor = "move";
       let x = e.clientX;
       let y = e.clientY;
       if (dragging) {

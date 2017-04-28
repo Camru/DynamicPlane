@@ -61,11 +61,12 @@ function main(x, z, color) {
   gl.clearColor(r/255, g/255, b/255, 1.0);
   gl.enable(gl.DEPTH_TEST);
 
+  let currentAngle = [0.0, 0.1];
+  utils.initEventHandlers(canvas, currentAngle);
+
   let now;
   let then = Date.now() * 0.001;
   let rotation = 0;
-  let currentAngle = [0.0, 0.1];
-  utils.initEventHandlers(canvas, currentAngle);
   const animate = now => {
     if (!now) now = Date.now(); 
     now *= 0.001; // convert time to seconds
@@ -89,6 +90,7 @@ function main(x, z, color) {
 
     let modelMatrix = new Matrix4();
     if (controls.autoRotate.checked) {
+      canvas.style.cursor = "default";
       rotation += 40 * deltaTime; 
       modelMatrix.setRotate(rotation, 0, 1, 0);
     } else {
