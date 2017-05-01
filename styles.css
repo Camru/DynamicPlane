@@ -4,15 +4,13 @@ body {
     letter-spacing: 1px;
 }
 
-canvas {
-    flex-grow: 1;
-}
-
 .container {
     display: flex;
-    justify-content: space-between;
     background-color: #1c122b;
-    height: 100vh;
+}
+
+.canvas-container {
+    margin: auto;
 }
 
 #loading {
@@ -31,6 +29,7 @@ canvas {
 
 #controls {
     width: 300px;
+    height: 100%;
     color: white;
     background-color: rgba(0, 0, 0, 0.5);
     padding: 25px;
@@ -41,7 +40,7 @@ canvas {
 }
 
 #controls h1 {
-    margin-bottom: 0;
+    margin: 0;
 }
 
 .control-list {

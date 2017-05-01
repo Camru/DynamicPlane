@@ -10,6 +10,7 @@ const graphics = (() => {
     uniform float u_PosMultiple;
     varying vec4 v_Color;
     varying vec4 v_Position;
+    varying float v_Time;
     void main() {
         vec4 position2 = a_Position;
         position2.y += u_Amplitude * sin(u_Frequency * u_Time + a_Position.x * u_PosMultiple); 
@@ -17,6 +18,7 @@ const graphics = (() => {
         gl_Position = u_ProjectionMatrix * u_ModelViewMatrix * position2;  
         v_Position = position2;
         v_Color = a_Color;
+        v_Time = u_Time;
     }`;
 
   let FSHADER_SOURCE =
@@ -24,6 +26,7 @@ const graphics = (() => {
     uniform float u_Brightness;
     varying vec4 v_Color;
     varying vec4 v_Position;
+    varying float v_Time;
     void main() {
       gl_FragColor = vec4(v_Position.x * u_Brightness, v_Position.y * u_Brightness, v_Position.z * u_Brightness, 1.0);
     }`;
@@ -61,7 +64,8 @@ const graphics = (() => {
       u_Frequency: utils.getULocation(gl, 'u_Frequency'),
       u_Amplitude: utils.getULocation(gl, 'u_Amplitude'),
       u_PosMultiple: utils.getULocation(gl, 'u_PosMultiple'),
-      u_Brightness: utils.getULocation(gl, 'u_Brightness')
+      u_Brightness: utils.getULocation(gl, 'u_Brightness'),
+      time: utils.getULocation(gl, 'u_Time')
     };
 
     // Get number of vertices to be rendered
@@ -93,8 +97,7 @@ const graphics = (() => {
       let deltaTime = now - then;
       then = now;
 
-      let time = utils.getULocation(gl, 'u_Time');
-      gl.uniform1f(time, now);
+      gl.uniform1f(locations.time, now);
       gl.uniform1f(locations.u_Frequency, controls.frequency.value);
       gl.uniform1f(locations.u_Amplitude, controls.amplitude.value);
       gl.uniform1f(locations.u_PosMultiple, controls.posMultiple.value);
@@ -166,13 +169,10 @@ const graphics = (() => {
     gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 
     let a_Position = gl.getAttribLocation(gl.program, 'a_Position');
-    let a_Color = gl.getAttribLocation(gl.program, 'a_Color');
 
     gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, F_SIZE * 6, 0);
-    gl.vertexAttribPointer(a_Color, 3, gl.FLOAT, false, F_SIZE * 6, F_SIZE * 3);
 
     gl.enableVertexAttribArray(a_Position);
-    gl.enableVertexAttribArray(a_Color);
 
     return n;
   }
