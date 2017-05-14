@@ -12,11 +12,11 @@ const graphics = (() => {
     varying vec4 v_Position;
     varying float v_Time;
     void main() {
-        vec4 position2 = a_Position;
-        position2.y += u_Amplitude * sin(u_Frequency * u_Time + a_Position.x * u_PosMultiple); 
-        position2.y += u_Amplitude * cos(u_Frequency * u_Time + a_Position.z * u_PosMultiple); 
-        gl_Position = u_ProjectionMatrix * u_ModelViewMatrix * position2;  
-        v_Position = position2;
+        vec4 position = a_Position;
+        position.y +=  u_Amplitude * sin(u_Frequency * u_Time + a_Position.x * u_PosMultiple); 
+        position.y += u_Amplitude * cos(u_Frequency * u_Time + a_Position.z * u_PosMultiple); 
+        gl_Position = u_ProjectionMatrix * u_ModelViewMatrix * position;  
+        v_Position = position;
         v_Color = a_Color;
         v_Time = u_Time;
     }`;
@@ -30,13 +30,16 @@ const graphics = (() => {
     void main() {
       gl_FragColor = vec4(v_Position.x * u_Brightness, v_Position.y * u_Brightness, v_Position.z * u_Brightness, 1.0);
     }`;
+ 
+  let requestId;
 
-  function main(x, z, color) {
+  function main(x, z, color, freq, amp, pos, camX, camY, camZ) {
+    if (requestId) cancelAnimationFrame(requestId);
     const canvas = document.getElementById('webgl');
     const gl = utils.initWebGL(canvas);
 
     const settings = {
-      FOV: 20,
+      FOV: 20, 
       ASPECT: canvas.clientWidth / canvas.clientHeight,
       NEAR: 1,
       FAR: 100
@@ -53,6 +56,14 @@ const graphics = (() => {
       cameraZ: document.getElementById('cameraZ')
     };
 
+    // set example values if provided, otherwise use defaults
+    controls.frequency.value = freq || controls.frequency.value;
+    controls.amplitude.value = amp || controls.amplitude.value;
+    controls.posMultiple.value = pos || controls.posMultiple.value;
+    controls.cameraX.value = camX || controls.cameraX.value;
+    controls.cameraY.value = camY || controls.cameraY.value;
+    controls.cameraZ.value = camZ || controls.cameraZ.value; 
+   
     if (!utils.initShaders(gl, VSHADER_SOURCE, FSHADER_SOURCE)) {
       console.log('failed to get rendering context');
       return;
@@ -77,21 +88,22 @@ const graphics = (() => {
       return;
     }
 
-    const hex = hexToRgbA(color);
+    const hex = utils.hexToRgbA(color);
     const [r, g, b] = hex;
     gl.clearColor(r / 255, g / 255, b / 255, 1.0);
     gl.enable(gl.DEPTH_TEST);
 
     // setup rotate by mouse
     let currentAngle = [0.0, 0.1];
-    utils.initEventHandlers(canvas, currentAngle);
+    let mouse = {x: 0, y: 0};
+    utils.initEventHandlers(canvas, currentAngle, mouse);
 
-    let now;
     let then = Date.now() * 0.001;
     let rotation = 0;
-    const animate = now => {
+    const animate = timestamp => {
       const {cameraX, cameraY, cameraZ} = controls;
       const {FOV, ASPECT, NEAR, FAR} = settings;
+      let now = timestamp;
       if (!now) now = Date.now();
       now *= 0.001; // convert time to seconds
       let deltaTime = now - then;
@@ -124,10 +136,10 @@ const graphics = (() => {
 
       gl.drawArrays(gl.TRIANGLE, 0, n);
 
-      requestAnimationFrame(animate);
+      requestId = requestAnimationFrame(animate);
     };
     animate();
-  };
+  }
 
   function generatePlane(segmentsX, segmentsZ) {
     const positions = [];
@@ -165,13 +177,10 @@ const graphics = (() => {
     }
 
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-
     gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 
     let a_Position = gl.getAttribLocation(gl.program, 'a_Position');
-
     gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, F_SIZE * 6, 0);
-
     gl.enableVertexAttribArray(a_Position);
 
     return n;
@@ -182,19 +191,6 @@ const graphics = (() => {
     const zSegs = document.getElementById('zSegments').value;
     const backgroundColor = document.getElementById('backgroundColor').value;
     main(xSegs, zSegs, backgroundColor);
-  }
-
-  function hexToRgbA(hex) {
-    let c;
-    if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
-      c = hex.substring(1).split('');
-      if (c.length == 3) {
-        c = [c[0], c[0], c[1], c[1], c[2], c[2]];
-      }
-      c = '0x' + c.join('');
-      return [(c >> 16) & 255, (c >> 8) & 255, c & 255, 1];
-    }
-    throw new Error('Bad Hex');
   }
 
   return {

@@ -10,7 +10,7 @@ const utils = (() => {
     gl.linkProgram(program);
 
     let linked = gl.getProgramParameter(program, gl.LINK_STATUS);
-
+  
     return program;
   }
 
@@ -26,6 +26,16 @@ const utils = (() => {
     return shader;
   }
 
+  function destroyShader(gl, vshader, fshader) {
+    let vertexShader = loadShader(gl, gl.VERTEX_SHADER, vshader);
+    let fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fshader);
+
+    let program = gl.createProgram();
+
+    gl.deleteProgram(program);
+    gl.deleteShader(fragmentShader);
+    gl.deleteShader(vertexShader);
+  }
 
   function initWebGL(canvas) {
     let gl = null;
@@ -45,10 +55,6 @@ const utils = (() => {
     gl.program = program;
 
     return true;
-  }
-
-  function locationCheck(location, name) {
-
   }
 
   function getULocation(gl, name) {
@@ -80,7 +86,20 @@ const utils = (() => {
     console.log(`Max execution time: ${maxTime} ms`);
   }
 
-  function initEventHandlers(canvas, currentAngle) {
+  function hexToRgbA(hex) {
+    let c;
+    if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
+      c = hex.substring(1).split('');
+      if (c.length == 3) {
+        c = [c[0], c[0], c[1], c[1], c[2], c[2]];
+      }
+      c = '0x' + c.join('');
+      return [(c >> 16) & 255, (c >> 8) & 255, c & 255, 1];
+    }
+    throw new Error('Bad Hex');
+  }
+
+  function initEventHandlers(canvas, currentAngle, mouse) {
     let dragging = false;
     let lastX = -1;
     let lastY = -1;
@@ -103,20 +122,21 @@ const utils = (() => {
 
     canvas.addEventListener('mousemove', e => {
       canvas.style.cursor = "move";
-      let x = e.clientX;
-      let y = e.clientY;
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+
       if (dragging) {
         let rotationRatio = 100 / canvas.clientHeight;
-        let dx = rotationRatio * (x - lastX);
-        let dy = rotationRatio * (y - lastY);
+        let dx = rotationRatio * (mouse.x - lastX);
+        let dy = rotationRatio * (mouse.y - lastY);
 
         // contstrain rotation to -90 and 90 degree
         currentAngle[0] = currentAngle[0] + dy;
         currentAngle[1] = currentAngle[1] + dx;
       }
 
-      lastX = x;
-      lastY = y;
+      lastX = mouse.x;
+      lastY = mouse.y;
     });
   }
 
@@ -125,7 +145,9 @@ const utils = (() => {
     initShaders: initShaders,
     initEventHandlers: initEventHandlers,
     perfTest: perfTest,
-    getULocation: getULocation
+    hexToRgbA: hexToRgbA,
+    getULocation: getULocation,
+    destroyShader: destroyShader
   };
 
 })();

@@ -49,6 +49,11 @@ body {
     padding: 0px;
 }
 
+.examples {
+    display: flex;
+    justify-content: space-around;
+}
+
 .control-list li {
    margin-bottom: 5px; 
 }
@@ -69,6 +74,7 @@ body {
     border-radius: 2px;
     transition: all 0.2s ease;
     letter-spacing: 1px;
+    width: 105px;
 }
 
 .btn:hover {
