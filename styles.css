@@ -82,6 +82,12 @@ body {
     border: 1px solid #ff5e00; 
 }
 
+.btn:focus {
+    outline: none;
+    background-color: #ff5e00;
+    border: 1px solid #ff5e00; 
+}
+
 .num-input {
     background-color: white;
     border: 0px;
