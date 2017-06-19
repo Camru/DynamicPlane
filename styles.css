@@ -1,3 +1,7 @@
+html {
+    height: 100vh;
+    background-color: #1c122b;
+}
 body {
     margin: 0;
     font-family: 'Open Sans', serif;
@@ -6,7 +10,6 @@ body {
 
 .container {
     display: flex;
-    background-color: #1c122b;
 }
 
 .canvas-container {
@@ -29,14 +32,13 @@ body {
 
 #controls {
     width: 300px;
-    height: 100%;
+    height: 100vh;
     color: white;
     background-color: rgba(0, 0, 0, 0.5);
     padding: 25px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
 }
 
 #controls h1 {
